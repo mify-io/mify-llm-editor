@@ -1,0 +1,6 @@
+anthropic
+python-dotenv
+sqlalchemy
+fastapi
+uvicorn
+alembic
