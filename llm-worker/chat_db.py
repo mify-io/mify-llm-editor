@@ -64,6 +64,12 @@ def get_project_data(db: Session, project_id: int) -> ProjectData:
     ctx = db.query(ProjectContext).filter(ProjectContext.project_id == project_id).all()
     return ProjectData(messages=messages, context=ctx)
 
+def add_project(db: Session, name: str):
+    new_project = Project(name=name)
+    db.add(new_project)
+    db.commit()
+    return new_project
+
 def add_messages(db: Session, messages: List[NewMessage]):
     for msg in messages:
         db_item = Message(**msg.__dict__)
@@ -74,4 +80,8 @@ def add_context(db: Session, records: List[NewProjectContext]):
     for r in records:
         db_item = ProjectContext(**r.__dict__)
         db.add(db_item)
+    db.commit()
+
+def del_project(db: Session, project_id: int):
+    db.query(Project).filter(Project.id == project_id).delete()
     db.commit()
