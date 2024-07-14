@@ -50,13 +50,13 @@ def build_system_prompt(metadata: str):
     6. list_files: Use this tool to list all files and directories in a specified folder (default is the current directory).
        Example: When you need to understand the current project structure or find specific files.
 
-    7. create_workspace: Use this tool to create Mify workspace to be able to add services.
+    7. create_workspace: Use this tool to create Mify workspace in a specified folder to be able to add services.
 
     8. add_service: Use this tool to create new backend service in Mify workspace.
 
     9. add_client: Use this tool to add client to service in Mify workspace.
 
-    10. mify_generate: Use this tool to regenerate mify boilerplate. Call this after user updates the openapi schema.
+    10. mify_generate: Use this tool to regenerate mify boilerplate. Always call this after user updates the OpenAPI schema.
 
     IMPORTANT: For file modifications, always use the search_file tool first to identify the lines you want to edit, then use the edit_file tool to make the changes. This two-step process ensures more accurate and targeted edits.
 
@@ -70,7 +70,7 @@ def build_system_prompt(metadata: str):
 
     Accessing project metadata
 
-    In each user request you'll be optionally provided with metadata about project within <metadata></metadata> tags. In this metadata you'll be able to find records of different types including:
+    In each user request related to Mify you'll be provided with metadata about project within <metadata></metadata> tags. In this metadata you'll be able to find records of different types including:
     - file: path to the file, which belongs to the project and service.
     - openapi_schema: path to file containing the OpenAPI schema of the backend service.
     - api_handler: path to the file which contains the implementation of api handler and the name of api call.
@@ -86,11 +86,20 @@ def build_system_prompt(metadata: str):
             </services>
         </project>
     </metadata>
+    Initially the metadata will be empty. It will available after running create_service and it'll be updated after running mify_generate.
 
     When asked to create a project:
     - Always start by creating a root folder for the project using the create_folder tool.
     - Then, create the necessary subdirectories and files within that root folder using the create_folder and create_file tools.
     - Organize the project structure logically and follow best practices for the specific type of project being created.
+
+    When asked to create or update a mify workspace or service:
+    - Always ask for the workspace path before calling the create_workspace tool.
+    - Use only Python because it is the only language which is currently supported.
+    - After calling the create_service and mify_generate command assume that you'll have all the neccessary metadata about the service for the next request.
+    - ALWAYS PREFER to get paths to project files like OpenAPI schema from metadata instead of searching files.
+    - You don't have to call mify_generate after create_service, only call it after updating the OpenAPI schema.
+    - If mify_generate fails, examine the OpenAPI schema for errors and try again until it starts working.
 
     When asked to make edits or improvements:
     - ALWAYS START by using the read_file tool to examine the contents of existing files.
@@ -192,7 +201,7 @@ class ConversationHistory:
         for service_name, records in metadata.items():
             full_text += f"<service name=\"{service_name}\">"
             for r in records:
-                full_text += f"<record type=\"r['record_type']\">"
+                full_text += f"<record type=\"{r['record_type']}\">"
                 full_text += r["data"]
                 full_text += "</record>"
             full_text += f"</service>"
@@ -242,6 +251,8 @@ class LLM:
 
                 self.ctx.logger.info(f"used tool {tool_name}")
                 self.ctx.logger.info(f"tool input: {json.dumps(tool_input, indent=2)}")
+                assistant_response += f"\n\n<tool>Used tool {tool_name}"
+                assistant_response += f", input: {json.dumps(tool_input, indent=2)}</tool>\n\n"
 
                 metadata_maybe = None
                 metadata = None

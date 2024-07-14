@@ -194,7 +194,7 @@ const Chat: React.FC = () => {
             <div className="flex flex-col flex-grow">
                 {/* Chat header */}
                 <div className="bg-chat-frame text-white p-4 shadow-md flex justify-between items-center">
-                    <h1 className="text-2xl font-bold">Mify LLM Agent</h1>
+                    <h1 className="text-2xl font-bold">Mify LLM Editor</h1>
                     <button
                         onClick={clearChat}
                         className="bg-delete-button-100 text-gray-200 px-4 py-2 rounded-md hover:bg-delete-button-200 focus:outline-none transition-colors duration-200"

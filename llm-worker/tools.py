@@ -353,18 +353,22 @@ def build_service_metadata(name, path):
     return metadata
 
 def create_service(name, language, path=".") -> Tuple[str, Optional[Dict[str, Any]]]:
+    # python needs underscores in packages
+    name = name.replace('-', '_')
     out = call_binary(
         "mify", ["add", "service", name, "--language", language, "-p", path]
     )
     return (out, build_service_metadata(name, path))
 
 def mify_generate(name, path=".")  -> Tuple[str, Optional[Dict[str, Any]]]:
+    name = name.replace('-', '_')
     out = call_binary(
         "mify", ["generate", "-p", path]
     )
     return (out, build_service_metadata(name, path))
 
 def add_client(name, client_name, path=".") -> Tuple[str, Optional[Dict[str, Any]]]:
+    name = name.replace('-', '_')
     out = call_binary("mify", ["add", "client", name, "--to", client_name, "-p", path])
     return (out, None)
 
