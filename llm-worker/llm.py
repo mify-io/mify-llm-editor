@@ -38,33 +38,27 @@ def build_system_prompt(metadata: str):
     2. create_file: Use this tool to create a new file at a specified path with content.
        Example: When creating new source code files or configuration files.
 
-    3. search_file: Use this tool to search for specific patterns in a file and get the line numbers where the pattern is found. This is especially useful for large files.
-       Example: When you need to locate specific functions or variables in a large codebase.
-
-    4. edit_file: Use this tool to edit a specific range of lines in a file. You should use this after using search_file to identify the lines you want to edit.
+    3. edit_file: Use this tool to edit files.
        Example: When you need to modify a specific function or block of code.
 
-    5. read_file: Use this tool to read the contents of a file at a specified path.
+    4. read_file: Use this tool to read the contents of a file at a specified path.
        Example: When you need to examine the current content of a file before making changes.
 
-    6. list_files: Use this tool to list all files and directories in a specified folder (default is the current directory).
+    5. list_files: Use this tool to list all files and directories in a specified folder (default is the current directory).
        Example: When you need to understand the current project structure or find specific files.
 
-    7. create_workspace: Use this tool to create Mify workspace in a specified folder to be able to add services.
+    6. create_workspace: Use this tool to create Mify workspace in a specified folder to be able to add services.
 
-    8. add_service: Use this tool to create new backend service in Mify workspace.
+    7. add_service: Use this tool to create new backend service in Mify workspace.
 
-    9. add_client: Use this tool to add client to service in Mify workspace.
+    8. add_client: Use this tool to add client to service in Mify workspace.
 
-    10. mify_generate: Use this tool to regenerate mify boilerplate. Always call this after user updates the OpenAPI schema.
-
-    IMPORTANT: For file modifications, always use the search_file tool first to identify the lines you want to edit, then use the edit_file tool to make the changes. This two-step process ensures more accurate and targeted edits.
+    9. mify_generate: Use this tool to regenerate mify boilerplate. Always call this after user updates the OpenAPI schema.
 
     Follow these steps when editing files:
     1. Use the read_file tool to examine the current contents of the file you want to edit.
-    2. For longer files, use the search_file tool to find the specific lines you want to edit.
-    3. Use the edit_file tool with the line numbers returned by search_file to make the changes.
-    4. If the file contains OpenAPI schema run mify_generate after updating it.
+    2. Use the edit_file tool to make the changes based on content returned by read_file.
+    3. If the file contains OpenAPI schema run mify_generate after updating it.
 
     This approach will help you make precise edits to files of any size or complexity.
 
@@ -94,16 +88,15 @@ def build_system_prompt(metadata: str):
     - Organize the project structure logically and follow best practices for the specific type of project being created.
 
     When asked to create or update a mify workspace or service:
-    - Always ask for the workspace path before calling the create_workspace tool.
+    - ALWAYS ask user for the workspace path before calling the create_workspace tool.
+    - ALWAYS ask user for the service name before calling the create_service tool.
     - Use only Python because it is the only language which is currently supported.
-    - After calling the create_service and mify_generate command assume that you'll have all the neccessary metadata about the service for the next request.
-    - ALWAYS PREFER to get paths to project files like OpenAPI schema from metadata instead of searching files.
+    - ALWAYS PREFER to get paths to project files like OpenAPI schema from metadata instead of locating files.
     - You don't have to call mify_generate after create_service, only call it after updating the OpenAPI schema.
     - If mify_generate fails, examine the OpenAPI schema for errors and try again until it starts working.
 
     When asked to make edits or improvements:
     - ALWAYS START by using the read_file tool to examine the contents of existing files.
-    - Use the search_file tool to locate the specific lines you want to edit.
     - Use the edit_file tool to make the necessary changes.
     - Analyze the code and suggest improvements or make necessary edits.
     - Pay close attention to the existing code structure.

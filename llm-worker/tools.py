@@ -42,26 +42,8 @@ def get_tools_list():
             },
         },
         {
-            "name": "search_file",
-            "description": "Search for a specific pattern in a file and return the line numbers where the pattern is found. Use this to locate specific code or text within a file.",
-            "input_schema": {
-                "type": "object",
-                "properties": {
-                    "path": {
-                        "type": "string",
-                        "description": "The path of the file to search",
-                    },
-                    "search_pattern": {
-                        "type": "string",
-                        "description": "The pattern to search for in the file",
-                    },
-                },
-                "required": ["path", "search_pattern"],
-            },
-        },
-        {
             "name": "edit_file",
-            "description": "Edit a specific range of lines in a file. Use this after using search_file to identify the lines you want to edit.",
+            "description": "Edit a file content. Use this tool after getting content from read_file.",
             "input_schema": {
                 "type": "object",
                 "properties": {
@@ -69,20 +51,12 @@ def get_tools_list():
                         "type": "string",
                         "description": "The path of the file to edit",
                     },
-                    "start_line": {
-                        "type": "integer",
-                        "description": "The starting line number of the edit",
-                    },
-                    "end_line": {
-                        "type": "integer",
-                        "description": "The ending line number of the edit",
-                    },
                     "new_content": {
                         "type": "string",
                         "description": "The new content to replace the specified lines",
                     },
                 },
-                "required": ["path", "start_line", "end_line", "new_content"],
+                "required": ["path", "new_content"],
             },
         },
         {
@@ -208,21 +182,6 @@ def create_file(path, content="") -> Tuple[str, Optional[Dict[str, Any]]]:
         return (f"Error creating file: {str(e)}", None)
 
 
-def search_file(path, search_pattern) -> Tuple[str, Optional[Dict[str, Any]]]:
-    try:
-        with open(path, "r") as file:
-            content = file.readlines()
-
-        matches = []
-        for i, line in enumerate(content, 1):
-            if re.search(search_pattern, line):
-                matches.append(i)
-
-        return (f"Matches found at lines: {matches}", None)
-    except Exception as e:
-        return (f"Error searching file: {str(e)}", None)
-
-
 def generate_and_apply_diff(
     original_content, new_content, path
 ) -> Tuple[str, Optional[Dict[str, Any]]]:
@@ -262,27 +221,20 @@ def generate_and_apply_diff(
 
 
 def edit_file(
-    path, start_line, end_line, new_content
+    path, new_content
 ) -> Tuple[str, Optional[Dict[str, Any]]]:
     try:
         with open(path, "r") as file:
             content = file.readlines()
-
         original_content = "".join(content)
 
-        start_index = start_line - 1
-        end_index = end_line
-
-        content[start_index:end_index] = new_content.splitlines(True)
-
-        new_content = "".join(content)
-
-        diff_result = generate_and_apply_diff(original_content, new_content, path)
-
-        return (
-            f"Successfully edited lines {start_line} to {end_line} in {path}\n{diff_result}",
-            None,
-        )
+        if new_content != original_content:
+            diff_result = generate_and_apply_diff(original_content, new_content, path)
+            return (
+                f"Successfully edited file in {path}\n{diff_result}",
+                None,
+            )
+        return (f"File {path} is not changed, skipping update", None)
     except Exception as e:
         return (f"Error editing file: {str(e)}", None)
 
@@ -380,15 +332,10 @@ def execute_tool(tool_name, tool_input) -> Tuple[str, Optional[Dict[str, Any]]]:
         elif tool_name == "create_file":
             print(f"create_file {tool_input['path']}")
             return create_file(tool_input["path"], tool_input.get("content", ""))
-        elif tool_name == "search_file":
-            print(f"search_file {tool_input['path']}")
-            return search_file(tool_input["path"], tool_input["search_pattern"])
         elif tool_name == "edit_file":
             print(f"edit_file {tool_input['path']}")
             return edit_file(
                 tool_input["path"],
-                tool_input["start_line"],
-                tool_input["end_line"],
                 tool_input["new_content"],
             )
         elif tool_name == "read_file":
