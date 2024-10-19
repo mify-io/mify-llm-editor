@@ -82,7 +82,7 @@ $ uvicorn llm-worker.main:app --port 3001
 Run webapp:
 ```
 $ cd webapp
-$ npm run dev
+$ npm run start
 ```
 
 ## Usage
